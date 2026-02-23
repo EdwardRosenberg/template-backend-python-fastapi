@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: EdwardRosenberg/template-base/.github/workflows/ci.yml@main
+    with:
+      backend-enabled: true
+      backend-tech-stack: "python"
+      python-version: "3.11"
+      backend-build-command: "pip install -e '.[dev]' && ruff check . && ruff format --check ."
+      backend-test-command: "pytest"
+
+      frontend-enabled: false
+
+      ci-success-enabled: true
+
