@@ -130,6 +130,29 @@ When making changes, bump the `version` in `pyproject.toml` as part of your comm
 
 Always update the version in the same commit as your functional changes.
 
+## Branch Management
+
+Every change must go through a pull request — never push directly to `main`.
+
+1. **Create a branch** from `main` for each feature or fix:
+   ```bash
+   git checkout main && git pull
+   git checkout -b <type>/<short-description>   # e.g. feat/add-health-endpoint
+   ```
+2. **Commit and push** your changes to the new branch:
+   ```bash
+   git add -A && git commit -m "<type>(<scope>): <description>"
+   git push -u origin HEAD
+   ```
+3. **Open a pull request** against `main` and wait for CI/CD to pass.
+4. **Merge the PR** once CI is green and any required reviews are approved.
+5. **Pull main** locally before starting the next change:
+   ```bash
+   git checkout main && git pull
+   ```
+
+Repeat for each subsequent feature or fix. Keep branches short-lived and focused on a single concern.
+
 ## PR Conventions
 
 - Titles must follow Conventional Commits: `<type>(<scope>): <description>`
