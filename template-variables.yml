@@ -1,0 +1,43 @@
+# template-variables.yml
+# Defines the variables that the create-project scaffolding workflow substitutes
+# when creating a new project from this archetype template.
+#
+# Each variable declares:
+#   description:  Human-readable explanation shown in the workflow UI
+#   default:      The placeholder value in the template files (replaced during scaffolding)
+#   required:     Whether the user must supply a value (true) or can keep the default (false)
+#   files:        Which files contain this placeholder token
+
+variables:
+  projectName:
+    description: "Python package name (lowercase, hyphens allowed)"
+    default: "hello-world-service"
+    required: true
+    files:
+      - pyproject.toml
+
+  serviceName:
+    description: "Human-readable service name for API docs title"
+    default: "Hello World Service"
+    required: true
+    files:
+      - app/main.py
+
+  serviceDescription:
+    description: "Short description of the service for pyproject.toml and API docs"
+    default: "Hello World FastAPI Microservice"
+    required: false
+    files:
+      - pyproject.toml
+      - app/main.py
+
+  packageName:
+    description: "Python top-level package directory name (lowercase, underscores only)"
+    default: "app"
+    required: false
+    files:
+      - pyproject.toml
+      - app/main.py
+      - app/routes.py
+      - tests/test_app.py
+
