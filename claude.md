@@ -109,7 +109,7 @@ template-variables.yml     # Scaffolding variable definitions
 |---|---|---|
 | Lint | `ruff check .` | ✅ |
 | Format | `ruff format --check .` | ✅ |
-| Type check | `mypy .` | ✅ |
+| Type check | `mypy .` | ❌ |
 | Tests | `pytest` | ✅ |
 | PR title lint | `pr-title-lint.yml` workflow | ✅ |
 
