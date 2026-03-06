@@ -134,6 +134,6 @@ Always update the version in the same commit as your functional changes.
 ## PR Conventions
 
 - Titles must follow Conventional Commits: `<type>(<scope>): <description>`
-- Run all quality gates before submitting — all four checks must pass
+- Run all quality gates before submitting — all quality gates must pass
 - Include test coverage for any new endpoint or service function
 
