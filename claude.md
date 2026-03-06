@@ -4,95 +4,94 @@ This is a **Tier 2 archetype template** — a ready-to-run FastAPI microservice 
 
 ## Repository Purpose
 
-Provide a minimal but fully functional FastAPI application that runs, passes tests, and has CI green from day one. New projects are scaffolded from this template via the `create-project.yml` workflow.
+Provide a minimal but fully functional FastAPI application that passes linting, type checking, and tests out of the box. New projects are scaffolded from this template via the `create-project.yml` workflow with variable substitution.
 
 ## Tech Stack
 
 - **Language**: Python 3.11+
-- **Framework**: FastAPI 0.115+
-- **ASGI server**: Uvicorn 0.32+
-- **Validation**: Pydantic 2.10+
-- **API docs**: Swagger UI at `/docs`, ReDoc at `/redoc` (built into FastAPI)
-- **Test**: pytest + pytest-asyncio + httpx
-- **Linter/Formatter**: Ruff
-- **Type checker**: mypy (strict mode with pydantic plugin)
+- **Framework**: FastAPI (with uvicorn ASGI server)
+- **Validation**: Pydantic v2
+- **Linter/Formatter**: Ruff (rules inherited from `template-backend-python`)
+- **Type checker**: mypy (strict mode, with `pydantic.mypy` plugin)
+- **Test framework**: pytest + pytest-asyncio + httpx (async test client)
 - **CI**: Calls `template-base` reusable workflow with `backend-tech-stack: python`
 
 ## Build Commands
 
 ```bash
-# Create virtual environment
+# Setup
 python -m venv venv
 source venv/bin/activate   # or venv\Scripts\activate on Windows
-
-# Install dependencies
 pip install -e ".[dev]"
 
-# Run all quality checks
+# Run the server
+uvicorn app.main:app --reload --port 8080
+
+# Quality checks
 ruff check .               # Lint
 ruff format --check .      # Format check
 mypy .                     # Type check
 pytest                     # Tests
-
-# Start the server
-uvicorn app.main:app --reload --port 8080
 ```
 
-**Always run all quality checks before submitting a PR.**
+**Always run all four quality checks before submitting a PR.**
 
 ## Project Structure
 
 ```
 app/
-├── __init__.py           # Package marker
-├── main.py               # FastAPI application instance and configuration
-└── routes.py             # Hello World and health check endpoints
+├── __init__.py            # Package marker
+├── main.py                # FastAPI app factory, Swagger/ReDoc configuration
+└── routes.py              # Hello World and health check route handlers
 
 tests/
-├── __init__.py           # Package marker
-└── test_app.py           # Async test suite using httpx TestClient
+├── __init__.py            # Package marker
+└── test_app.py            # Async test suite using httpx AsyncClient
+
+pyproject.toml             # Dependencies, tool config (ruff, mypy, pytest)
+template-variables.yml     # Scaffolding variable definitions
 ```
 
 ## What You Can Change
 
-- `app/` — Application code (routes, services, models, schemas)
+- `app/` — Application code (routes, models, services, middleware)
 - `tests/` — Test code
-- `pyproject.toml` — Add dependencies to `[project.dependencies]`, add dev tools to `[project.optional-dependencies.dev]`
+- `pyproject.toml` — Add dependencies to `[project.dependencies]` or `[project.optional-dependencies.dev]`
 
 ## What You Must NOT Change
 
-- Do not remove `fastapi`, `uvicorn`, or `pydantic` from `pyproject.toml` dependencies
-- Do not remove the `/` (hello) or `/health` endpoints (they serve as smoke tests)
-- Do not remove Swagger/ReDoc auto-docs configuration
+- Do not remove `fastapi`, `uvicorn`, or `pydantic` from dependencies
+- Do not remove the health check or root endpoints (they serve as smoke tests)
+- Do not change `asyncio_mode = "auto"` in pytest config — all tests use async by default
 
 ## FastAPI Conventions
 
-- **App factory**: Define the `FastAPI()` instance in `app/main.py`
-- **Router organization**: Use `APIRouter` in separate modules (e.g., `routes.py`), include via `app.include_router()`
-- **Endpoint naming**: Use descriptive function names; FastAPI uses them as operation IDs in OpenAPI
-- **Response models**: Use Pydantic `BaseModel` subclasses for request/response schemas
-- **Path parameters**: Use type annotations for automatic validation (`item_id: int`)
-- **Dependency injection**: Use FastAPI's `Depends()` for shared logic (auth, DB sessions)
-- **Async endpoints**: Prefer `async def` for I/O-bound endpoints; use plain `def` for CPU-bound work
-- **Status codes**: Use `status.HTTP_*` constants from `starlette`
+- **App creation**: Use a single `FastAPI()` instance in `app/main.py`
+- **Route organization**: Group related endpoints in separate modules under `app/`, include them with `app.include_router()`
+- **Path operations**: Use `@router.get()`, `@router.post()`, etc. on an `APIRouter` in route modules
+- **Request/Response models**: Define Pydantic models for request bodies and structured responses
+- **Status codes**: Return explicit status codes: `status.HTTP_201_CREATED`, `status.HTTP_404_NOT_FOUND`
+- **Dependency injection**: Use FastAPI's `Depends()` for shared logic (auth, DB sessions, config)
+- **Error handling**: Raise `HTTPException` with appropriate status codes; add custom exception handlers for domain errors
+- **API docs**: FastAPI auto-generates Swagger at `/docs` and ReDoc at `/redoc` — keep these enabled
 
 ## Python Conventions
 
-- **Python version**: 3.11+ — use modern syntax (match statements, type union `X | Y`, `Self` type)
-- **Type hints**: Required on all function signatures — mypy strict mode is enabled
-- **Imports**: Use absolute imports; ruff enforces isort-compatible ordering
-- **Line length**: 120 characters (configured in ruff)
-- **String quotes**: Double quotes (ruff default)
-- **Docstrings**: Use Google-style docstrings for public functions and classes
-- **Naming**: `snake_case` for functions/variables, `CamelCase` for classes, `UPPER_SNAKE_CASE` for constants
+- **Type hints**: Required everywhere — mypy strict mode is on with `pydantic.mypy` plugin
+- **Async by default**: Use `async def` for route handlers; use synchronous `def` only for CPU-bound helpers
+- **Imports**: Absolute imports only; ruff enforces isort ordering
+- **Line length**: 120 characters
+- **Naming**: `snake_case` for functions/variables/modules, `CamelCase` for classes and Pydantic models
+- **Docstrings**: Google-style for public functions and classes
 
 ## Testing Conventions
 
-- **Test client**: Use `httpx.AsyncClient` with `ASGITransport` for async HTTP-level tests
-- **Async tests**: All test functions should be `async def` — `asyncio_mode = "auto"` is configured
-- **Naming**: Test functions should describe behavior: `test_endpoint_condition_expected_result`
+- **Test client**: Use `httpx.AsyncClient` with `ASGITransport` for HTTP-level tests
+- **Async tests**: All tests are async by default (`asyncio_mode = "auto"`)
+- **Naming**: `test_<route_or_behavior>_<scenario>` (e.g., `test_hello_returns_greeting`)
+- **Assertions**: Use plain `assert` statements (pytest rewrites them for clear diffs)
 - **Every new endpoint must have at least one test**
-- **Assertions**: Use plain `assert` statements (pytest style)
+- **Test isolation**: Each test should be independent; don't rely on test execution order
 
 ## API Endpoints
 
@@ -102,7 +101,7 @@ tests/
 | GET | `/health` | Health check |
 | GET | `/docs` | Swagger UI |
 | GET | `/redoc` | ReDoc API docs |
-| GET | `/openapi.json` | OpenAPI JSON spec |
+| GET | `/openapi.json` | OpenAPI schema |
 
 ## Quality Gates
 
@@ -110,7 +109,7 @@ tests/
 |---|---|---|
 | Lint | `ruff check .` | ✅ |
 | Format | `ruff format --check .` | ✅ |
-| Type check | `mypy .` | ✅ |
+| Type check | `mypy .` | ❌ |
 | Tests | `pytest` | ✅ |
 | PR title lint | `pr-title-lint.yml` workflow | ✅ |
 
@@ -120,41 +119,21 @@ tests/
 
 Governance files (`.editorconfig`, `.gitignore`, CI workflows, copilot-instructions) are synced from upstream via the platform sync workflow. Do not modify synced files directly — changes will be overwritten.
 
+Tool configuration in `pyproject.toml` (ruff rules, mypy settings, pytest options) is **owned by this repo** and not synced — it can be customized freely.
+
 ## Versioning
 
-When making changes, bump the `version` in `pyproject.toml` as part of your commit using semver:
+When making changes, bump the `version` field in `pyproject.toml` as part of your commit using semver:
 
 - **PATCH** (e.g., `0.1.0` → `0.1.1`) — bug fixes, doc changes, dependency updates, test additions
 - **MINOR** (e.g., `0.1.1` → `0.2.0`) — new endpoints, new dependencies, new features
-- **MAJOR** (e.g., `0.2.0` → `1.0.0`) — breaking API changes, Python version upgrade, removing endpoints
+- **MAJOR** (e.g., `0.2.0` → `1.0.0`) — breaking API changes, framework major upgrade, removing endpoints
 
 Always update the version in the same commit as your functional changes.
-
-## Branch Management
-
-Every change must go through a pull request — never push directly to `main`.
-
-1. **Create a branch** from `main` for each feature or fix:
-   ```bash
-   git checkout main && git pull
-   git checkout -b <type>/<short-description>   # e.g. feat/add-health-endpoint
-   ```
-2. **Commit and push** your changes to the new branch:
-   ```bash
-   git add -A && git commit -m "<type>(<scope>): <description>"
-   git push -u origin HEAD
-   ```
-3. **Open a pull request** against `main` and wait for CI/CD to pass.
-4. **Merge the PR** once CI is green and any required reviews are approved.
-5. **Pull main** locally before starting the next change:
-   ```bash
-   git checkout main && git pull
-   ```
-
-Repeat for each subsequent feature or fix. Keep branches short-lived and focused on a single concern.
 
 ## PR Conventions
 
 - Titles must follow Conventional Commits: `<type>(<scope>): <description>`
-- Run all quality gates (`ruff check .`, `ruff format --check .`, `mypy .`, `pytest`) before submitting — all must pass
+- Run all quality gates before submitting — all quality gates must pass
+- Include test coverage for any new endpoint or service function
 
