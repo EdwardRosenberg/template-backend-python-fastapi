@@ -9,7 +9,7 @@ description = "Hello World FastAPI Microservice"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
-    "fastapi>=0.115",
+    "fastapi>=0.135.3",
     "uvicorn[standard]>=0.32",
     "pydantic>=2.10",
 ]
